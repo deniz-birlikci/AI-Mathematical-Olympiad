@@ -4,20 +4,26 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from format_data import get_data_SFTTrainer
 
-# Get Retrieval data from training dataset
-train_data = get_data_SFTTrainer('data/math/merged_math_problems_train_clean.json')
-prompts = [example["prompt"] for example in train_data] 
-
-# Initialize TF-IDF vectorizer
-vectorizer = TfidfVectorizer()
-# Fit vectorizer on prompts
-tfidf_matrix = vectorizer.fit_transform(prompts)
-
 ########### IMPLEMENTING IN OUR LOGIC on Test set #####################
-test_data = get_data_SFTTrainer('data/math/merged_math_problems_test_clean.json') # list
-def get_RAG_context(question_obj, top_k):
+def get_RAG_context(question_obj, RAG_params, top_k):
+    """
+    retrives similar questions/solutions as the prompt in question_obj to be used for ICL
+    Args:
+        question_obj: dict of {'prompt': _, 'completion':_}
+        RAG_params: dict {
+            "train_data": train_data,
+            "vectorizer": vectorizer,
+            "tfidf_matrix": tfidf_matrix,
+        }
+        top_k: how many similar questions/solutions user wants for context
+    """
+    # extrac RAG params
+    train_data = RAG_params["train_data"]
+    vectorizer = RAG_params["vectorizer"]
+    tfidf_matrix = RAG_params["tfidf_matrix"]
+
+    # get and vectorize the query
     query = question_obj["prompt"]
-    # Vectorize the query
     query_vector = vectorizer.transform([query])
 
     # Calculate cosine similarity between query and prompts
@@ -43,14 +49,27 @@ def get_RAG_context(question_obj, top_k):
 
 
 
-## Example 
 if __name__ == "__main__":
-    question_obj=test_data[0]
+    # Get Retrieval data from training dataset
+    # this should be done outside the test eval loop
+    train_data = get_data_SFTTrainer('data/math/merged_math_problems_train_clean.json')
+    prompts = [example["prompt"] for example in train_data] 
+    vectorizer = TfidfVectorizer()                       # Initialize TF-IDF vectorizer
+    tfidf_matrix = vectorizer.fit_transform(prompts)     # Fit vectorizer on prompts
+    RAG_params = {
+        "train_data": train_data,
+        "vectorizer": vectorizer,
+        "tfidf_matrix": tfidf_matrix,
+    }
+
+    # Example of use
+    test_data = get_data_SFTTrainer('data/math/merged_math_problems_test_clean.json') # list
+    test_question_obj=test_data[0]
     print("TEST QUESTION")
-    print(question_obj["prompt"])
+    print(test_question_obj["prompt"])
     print()
     print("CONTEXT")
-    print(get_RAG_context(question_obj, top_k=3))
+    print(get_RAG_context(test_question_obj, RAG_params, top_k=3))
     print()
 
 
