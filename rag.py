@@ -4,8 +4,19 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from format_data import get_data_SFTTrainer
 
+train_data = get_data_SFTTrainer('data/math/merged_math_problems_train_clean.json')
+prompts = [example["prompt"] for example in train_data] 
+vectorizer = TfidfVectorizer()                       # Initialize TF-IDF vectorizer
+tfidf_matrix = vectorizer.fit_transform(prompts)     # Fit vectorizer on prompts
+
+RAG_params_Default = {
+        "train_data": train_data,
+        "vectorizer": vectorizer,
+        "tfidf_matrix": tfidf_matrix,
+    }
+
 ########### IMPLEMENTING IN OUR LOGIC on Test set #####################
-def get_RAG_context(question_obj, RAG_params, top_k):
+def get_RAG_context(question_obj, top_k, RAG_params = RAG_params_Default):
     """
     retrives similar questions/solutions as the prompt in question_obj to be used for ICL
     Args:
