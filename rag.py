@@ -1,4 +1,3 @@
-import pprint
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -42,9 +41,8 @@ def get_RAG_context(question_obj, RAG_params, top_k):
     for similar_problem_obj in similar_problem_objs:
         prompt = similar_problem_obj["prompt"]
         completion = similar_problem_obj["completion"]
-        context += "prompt: {} \ncompletion: {}\n".format(prompt, completion)
+        context += """### prompt: {} [completion]: {}""".format(prompt, completion)
 
-    context += "prompt: "
     return context
 
 
