@@ -3,19 +3,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from format_data import get_data_SFTTrainer
 
-train_data = get_data_SFTTrainer('data/math/merged_math_problems_train_clean.json')
-prompts = [example["prompt"] for example in train_data] 
-vectorizer = TfidfVectorizer()                       # Initialize TF-IDF vectorizer
-tfidf_matrix = vectorizer.fit_transform(prompts)     # Fit vectorizer on prompts
-
-RAG_params_Default = {
-        "train_data": train_data,
-        "vectorizer": vectorizer,
-        "tfidf_matrix": tfidf_matrix,
-    }
-
 ########### IMPLEMENTING IN OUR LOGIC on Test set #####################
-def get_RAG_context(question_obj, top_k, RAG_params = RAG_params_Default):
+def get_RAG_context(question_obj, top_k, RAG_params):
     """
     retrives similar questions/solutions as the prompt in question_obj to be used for ICL
     Args:
@@ -52,7 +41,7 @@ def get_RAG_context(question_obj, top_k, RAG_params = RAG_params_Default):
     for similar_problem_obj in similar_problem_objs:
         prompt = similar_problem_obj["prompt"]
         completion = similar_problem_obj["completion"]
-        context += """### prompt: {} [completion]: {}""".format(prompt, completion)
+        context += """### Question: {} Answer: {} \n""".format(prompt, completion)
 
     return context
 
@@ -78,7 +67,7 @@ if __name__ == "__main__":
     print(test_question_obj["prompt"])
     print()
     print("CONTEXT")
-    print(get_RAG_context(test_question_obj, RAG_params, top_k=3))
+    print(get_RAG_context(test_question_obj, top_k=3, RAG_params=RAG_params))
     print()
 
 
